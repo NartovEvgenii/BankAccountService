@@ -1,12 +1,17 @@
 package org.nartov.domain;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Entity
 @Table
+@Getter
+@Setter
 public class BankAccount {
 
     @Id
@@ -26,43 +31,16 @@ public class BankAccount {
     @Column
     private BigDecimal balance;
 
-    public Long getIdBankAccount() {
-        return idBankAccount;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BankAccount that = (BankAccount) o;
+        return Objects.equals(idBankAccount, that.idBankAccount) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(name, that.name) && Objects.equals(pinCode, that.pinCode) && Objects.equals(balance, that.balance);
     }
 
-    public void setIdBankAccount(Long idBankAccount) {
-        this.idBankAccount = idBankAccount;
-    }
-
-    public Long getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(Long accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPinCode() {
-        return pinCode;
-    }
-
-    public void setPinCode(String pinCode) {
-        this.pinCode = pinCode;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    @Override
+    public int hashCode() {
+        return Objects.hash(idBankAccount, accountNumber, name, pinCode, balance);
     }
 }

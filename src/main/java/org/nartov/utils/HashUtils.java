@@ -8,13 +8,13 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class HashUtils {
 
-    public String hashPinCode(Integer pinCode){
+    public String hashPinCode(Integer pinCode) {
         return Hashing.sha256()
                 .hashString(pinCode.toString(), StandardCharsets.UTF_8)
                 .toString();
     }
 
-    public boolean checkPinCode(Integer pinCode, String hashPinCode){
+    public boolean checkPinCode(Integer pinCode, String hashPinCode) {
         return Hashing.sha256()
                 .hashString(pinCode.toString(), StandardCharsets.UTF_8)
                 .toString()

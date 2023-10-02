@@ -1,10 +1,10 @@
 package org.nartov.service;
 
-import lombok.SneakyThrows;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.nartov.domain.BankAccount;
 import org.nartov.dto.BankAccountDTO;
 import org.nartov.dto.BankAccountDTORequest;
@@ -13,46 +13,41 @@ import org.nartov.exception.NotFindBankAccountException;
 import org.nartov.repository.BankAccountRepository;
 import org.nartov.utils.AccountNumberGenerator;
 import org.nartov.utils.HashUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@RunWith(MockitoJUnitRunner.class)
 public class BankAccountServiceTest {
 
-    @Autowired
-    private BankAccountService bankAccountService;
+    @InjectMocks
+    private BankAccountServiceImpl bankAccountService;
 
-    @MockBean
+    @Mock
     private BankAccountRepository bankAccountRepository;
-    @MockBean
+    @Mock
     private HashUtils hashUtils;
-    @MockBean
+    @Mock
     private AccountNumberGenerator accountNumberGenerator;
 
     @Test
     public void createAccountTest() {
         BankAccountDTORequest bankAccountDTORequest = new BankAccountDTORequest();
 
-        Mockito.when(hashUtils.hashPinCode(anyInt()))
-                .thenReturn("HASH");
-        Mockito.when(accountNumberGenerator.getNextAccountNumber())
+        when(accountNumberGenerator.getNextAccountNumber())
                 .thenReturn(1L);
-        Mockito.when(bankAccountRepository.save(any()))
+        when(bankAccountRepository.save(any()))
                 .thenReturn(new BankAccount());
 
         BankAccountDTO bankAccountDTO = bankAccountService.createAccount(bankAccountDTORequest);
-        Assert.assertNotNull(bankAccountDTO);
-        Mockito.verify(bankAccountRepository,Mockito.times(1)).save(any());
+        assertNotNull(bankAccountDTO);
+        verify(bankAccountRepository, times(1)).save(any());
     }
 
 
@@ -61,15 +56,15 @@ public class BankAccountServiceTest {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setBalance(BigDecimal.valueOf(100));
 
-        Mockito.when(bankAccountRepository.findByAccountNumber(any()))
+        when(bankAccountRepository.findByAccountNumber(1L))
                 .thenReturn(Optional.of(bankAccount));
-        Mockito.when(bankAccountRepository.save(any()))
+        when(bankAccountRepository.save(any()))
                 .thenReturn(new BankAccount());
 
-        bankAccountService.depositAccount(1L, BigDecimal.valueOf(100));
+        bankAccountService.depositToAccount(1L, BigDecimal.valueOf(100));
 
-        Assert.assertEquals(bankAccount.getBalance(),BigDecimal.valueOf(200));
-        Mockito.verify(bankAccountRepository,Mockito.times(1)).save(bankAccount);
+        assertEquals(bankAccount.getBalance(), BigDecimal.valueOf(200));
+        verify(bankAccountRepository, times(1)).save(bankAccount);
     }
 
 
@@ -78,17 +73,17 @@ public class BankAccountServiceTest {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setBalance(BigDecimal.valueOf(100));
 
-        Mockito.when(bankAccountRepository.findByAccountNumber(any()))
+        when(bankAccountRepository.findByAccountNumber(1L))
                 .thenReturn(Optional.of(bankAccount));
-        Mockito.when(bankAccountRepository.save(any()))
+        when(bankAccountRepository.save(any()))
                 .thenReturn(new BankAccount());
-        Mockito.when(hashUtils.checkPinCode(1, null))
+        when(hashUtils.checkPinCode(1234, null))
                 .thenReturn(true);
 
-        bankAccountService.withdrawAccount(1L, BigDecimal.valueOf(100),1);
+        bankAccountService.withdrawFromAccount(1L, BigDecimal.valueOf(100), 1234);
 
-        Assert.assertEquals(bankAccount.getBalance(),BigDecimal.ZERO);
-        Mockito.verify(bankAccountRepository,Mockito.times(1)).save(bankAccount);
+        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        verify(bankAccountRepository, times(1)).save(bankAccount);
     }
 
     @Test
@@ -103,16 +98,16 @@ public class BankAccountServiceTest {
         bankAccount2.setAccountNumber(2L);
         bankAccount2.setBalance(BigDecimal.valueOf(100));
 
-        Mockito.when(bankAccountRepository.findAllByAccountNumber(List.of(1L,2L)))
+        when(bankAccountRepository.findAllByAccountNumber(List.of(1L, 2L)))
                 .thenReturn(List.of(bankAccount1, bankAccount2));
 
-        Mockito.when(hashUtils.checkPinCode(1234, "TESTHASH"))
+        when(hashUtils.checkPinCode(1234, "TESTHASH"))
                 .thenReturn(true);
 
-        bankAccountService.transferBalanceAccount(1L,2L,BigDecimal.valueOf(100),1234);
+        bankAccountService.transferBalanceAccount(1L, 2L, BigDecimal.valueOf(100), 1234);
 
-        Assert.assertEquals(bankAccount1.getBalance(),BigDecimal.ZERO);
-        Assert.assertEquals(bankAccount2.getBalance(),BigDecimal.valueOf(200));
-        Mockito.verify(bankAccountRepository,Mockito.times(1)).saveAll(any());
+        assertEquals(bankAccount1.getBalance(), BigDecimal.ZERO);
+        assertEquals(bankAccount2.getBalance(), BigDecimal.valueOf(200));
+        verify(bankAccountRepository, times(1)).saveAll(any());
     }
 }
